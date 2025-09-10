@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Portfolio</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: white;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      animation: fadeInDown 2s ease;
+      z-index: 2;
+    }
+
+    p {
+      font-size: 1.2rem;
+      margin-bottom: 40px;
+      color: #ddd;
+      animation: fadeInUp 2s ease;
+      z-index: 2;
+    }
+
+    .btn-container {
+      display: flex;
+      gap: 20px;
+      z-index: 2;
+    }
+
+    .btn {
+      padding: 12px 30px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      color: white;
+      background: #0f3460;
+      position: relative;
+      overflow: hidden;
+      transition: 0.4s;
+    }
+
+    .btn::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+      transition: 0.5s;
+    }
+
+    .btn:hover::before {
+      left: 100%;
+    }
+
+    .btn:hover {
+      background: #e94560;
+      transform: scale(1.1);
+    }
+
+    @keyframes fadeInDown {
+      0% { opacity: 0; transform: translateY(-50px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(50px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Floating animation */
+    .floating {
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* Canvas covers background */
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="bgCanvas"></canvas>
+
+  <h1 class="floating">Welcome to My Portfolio</h1>
+  <p>Connect with me on my social platforms below</p>
+
+  <div class="btn-container">
+    <button class="btn" onclick="redirect('https://github.com/NikhilTayade77')">GitHub</button>
+    <button class="btn" onclick="redirect('https://www.linkedin.com/in/nikhil-tayade77/')">LinkedIn</button>
+  </div>
+
+  <script>
+    function redirect(url) {
+      window.open(url, '_blank');
+    }
+
+    const canvas = document.getElementById('bgCanvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class Particle {
+      constructor(type) {
+        this.type = type; // "dot", "star", or "bubble"
+        this.reset();
+      }
+
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = this.type === 'dot' ? 2 : this.type === 'star' ? 2 + Math.random() * 2 : 5 + Math.random() * 10;
+        this.speedY = 0.2 + Math.random() * 0.5;
+        this.alpha = Math.random();
+        this.twinkle = Math.random() * 100;
+      }
+
+      update() {
+        this.y -= this.speedY;
+        if (this.y < 0) {
+          this.y = canvas.height;
+          this.x = Math.random() * canvas.width;
+        }
+      }
+
+      draw() {
+        ctx.save();
+        if (this.type === 'dot') {
+          ctx.fillStyle = `rgba(255,255,255,${this.alpha})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (this.type === 'star') {
+          ctx.fillStyle = `rgba(255,255,200,${Math.abs(Math.sin(this.twinkle))})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+          this.twinkle += 0.05;
+        } else if (this.type === 'bubble') {
+          ctx.strokeStyle = `rgba(173,216,230,${this.alpha})`;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < 50; i++) particles.push(new Particle('dot'));
+      for (let i = 0; i < 40; i++) particles.push(new Particle('star'));
+      for (let i = 0; i < 20; i++) particles.push(new Particle('bubble'));
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    initParticles();
+    animate();
+  </script>
+
+</body>
+</html>
