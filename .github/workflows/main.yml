@@ -1,29 +1,40 @@
-name: Deploy to GitHub Pages
+name: Nikhil Tayade
 
+# Trigger the workflow when a push is made to the 'main' branch or a pull request is created
 on:
   push:
     branches:
-      - main  # Change to your default branch if different
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
+      - main
+  pull_request:
 
 jobs:
-  deploy:
+  run-apache:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    # Step 1: Checkout the code from the repository
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
+    # Step 2: Install Apache
+    - name: Install Apache Server
+      run: |
+        sudo apt-get update
+        sudo apt-get install apache2 -y
 
-      - name: Upload site files
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: '.'  # Upload everything (your HTML, CSS, JS)
+    # Step 3: Deploy your website files to the Apache directory
+    - name: List repository files
+      run: ls -la 
+    - name: Deploy website
+      run: |
+       sudo cp -r ./index.html /var/www/html/
 
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+    # Step 4: Start Apache server and verify it's running
+    - name: Start Apache server
+      run: |
+        sudo systemctl start apache2
+        sudo systemctl status apache2
+
+    # Step 5: Optional - Test the server
+    - name: Test Apache server
+      run: curl http://localhost
